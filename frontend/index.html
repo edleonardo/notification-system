@@ -1,0 +1,939 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notif — Notification System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #0a0a0f;
+        --surface: #111118;
+        --surface2: #18181f;
+        --border: #252530;
+        --accent: #7c5cfc;
+        --accent2: #c084fc;
+        --green: #22d3a5;
+        --red: #f87171;
+        --amber: #fbbf24;
+        --text: #e8e8f0;
+        --muted: #6b6b82;
+        --mono: "Space Mono", monospace;
+        --sans: "DM Sans", sans-serif;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+        min-height: 100vh;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(124, 92, 252, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(124, 92, 252, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+        pointer-events: none;
+      }
+
+      .wrap {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 0 24px;
+        position: relative;
+      }
+
+      /* ── Header ── */
+      header {
+        border-bottom: 1px solid var(--border);
+        padding: 28px 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .logo-mark {
+        width: 34px;
+        height: 34px;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--mono);
+        font-size: 13px;
+        font-weight: 700;
+        color: #fff;
+      }
+      .logo-name {
+        font-family: var(--mono);
+        font-size: 17px;
+        font-weight: 700;
+      }
+      .logo-name span {
+        color: var(--accent2);
+      }
+      .header-tag {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--muted);
+        text-align: right;
+      }
+      .live-dot {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--green);
+        margin-right: 5px;
+        animation: blink 2s ease-in-out infinite;
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.25;
+        }
+      }
+
+      /* ── Layout ── */
+      main {
+        display: grid;
+        grid-template-columns: 360px 1fr;
+        gap: 20px;
+        padding: 28px 0 48px;
+      }
+      @media (max-width: 780px) {
+        main {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* ── Panel ── */
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .panel-head {
+        padding: 15px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .panel-label {
+        font-family: var(--mono);
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--muted);
+      }
+      .panel-chip {
+        font-family: var(--mono);
+        font-size: 10px;
+        padding: 2px 8px;
+        background: rgba(124, 92, 252, 0.12);
+        border: 1px solid rgba(124, 92, 252, 0.25);
+        border-radius: 100px;
+        color: var(--accent2);
+      }
+
+      /* ── Form ── */
+      .form-body {
+        padding: 20px;
+      }
+      .field {
+        margin-bottom: 18px;
+      }
+      label {
+        display: block;
+        font-family: var(--mono);
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+      select,
+      textarea {
+        width: 100%;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        font-family: var(--sans);
+        font-size: 14px;
+        outline: none;
+        transition:
+          border-color 0.18s,
+          box-shadow 0.18s;
+      }
+      select {
+        padding: 10px 14px;
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 5 5-5z' fill='%236b6b82'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+      }
+      textarea {
+        padding: 10px 14px;
+        resize: vertical;
+        min-height: 110px;
+        line-height: 1.6;
+      }
+      select:focus,
+      textarea:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(124, 92, 252, 0.14);
+      }
+      select option {
+        background: var(--surface2);
+      }
+
+      .pills {
+        display: flex;
+        gap: 7px;
+        margin-bottom: 9px;
+      }
+      .pill {
+        padding: 4px 11px;
+        border-radius: 100px;
+        font-size: 12px;
+        font-family: var(--mono);
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: all 0.14s;
+      }
+      .pill-s {
+        background: rgba(34, 211, 165, 0.08);
+        border-color: rgba(34, 211, 165, 0.25);
+        color: var(--green);
+      }
+      .pill-f {
+        background: rgba(251, 191, 36, 0.08);
+        border-color: rgba(251, 191, 36, 0.25);
+        color: var(--amber);
+      }
+      .pill-m {
+        background: rgba(192, 132, 252, 0.08);
+        border-color: rgba(192, 132, 252, 0.25);
+        color: var(--accent2);
+      }
+      .pill:hover {
+        opacity: 0.75;
+        transform: translateY(-1px);
+      }
+      .pill.active.pill-s {
+        background: rgba(34, 211, 165, 0.18);
+        box-shadow: 0 0 10px rgba(34, 211, 165, 0.2);
+      }
+      .pill.active.pill-f {
+        background: rgba(251, 191, 36, 0.18);
+        box-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
+      }
+      .pill.active.pill-m {
+        background: rgba(192, 132, 252, 0.18);
+        box-shadow: 0 0 10px rgba(192, 132, 252, 0.2);
+      }
+
+      .char {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--muted);
+        text-align: right;
+        margin-top: 5px;
+      }
+      .char.warn {
+        color: var(--amber);
+      }
+      .char.over {
+        color: var(--red);
+      }
+
+      .field-err {
+        color: var(--red);
+        font-size: 11px;
+        font-family: var(--mono);
+        margin-top: 5px;
+        display: none;
+      }
+
+      .btn {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, var(--accent), #9d6fff);
+        border: none;
+        border-radius: 8px;
+        color: #fff;
+        font-family: var(--mono);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.4px;
+        cursor: pointer;
+        transition: all 0.18s;
+      }
+      .btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 22px rgba(124, 92, 252, 0.4);
+      }
+      .btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      /* ── Users hint ── */
+      .users-box {
+        margin-top: 18px;
+        padding: 13px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+      .users-box-title {
+        font-family: var(--mono);
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 9px;
+      }
+      .u-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 5px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        font-size: 12px;
+      }
+      .u-row:last-child {
+        border-bottom: none;
+      }
+      .u-dots {
+        display: flex;
+        gap: 4px;
+      }
+      .u-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+      }
+      .d-s {
+        background: var(--green);
+      }
+      .d-f {
+        background: var(--amber);
+      }
+      .d-m {
+        background: var(--accent2);
+      }
+
+      /* ── Log panel ── */
+      .log-panel {
+        display: flex;
+        flex-direction: column;
+      }
+      .log-controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .log-count {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--muted);
+      }
+      .refresh-btn {
+        padding: 3px 10px;
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 10px;
+        cursor: pointer;
+        transition: all 0.14s;
+      }
+      .refresh-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .spinner {
+        width: 10px;
+        height: 10px;
+        border: 1.5px solid var(--border);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+        display: none;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .log-body {
+        overflow-y: auto;
+        max-height: 660px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+      }
+
+      /* ── Log entry ── */
+      .entry {
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--border);
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: start;
+        animation: fadeIn 0.25s ease;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .entry:last-child {
+        border-bottom: none;
+      }
+      .entry:hover {
+        background: rgba(255, 255, 255, 0.015);
+      }
+
+      .e-row1 {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 5px;
+      }
+      .e-user {
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .ch-badge {
+        font-family: var(--mono);
+        font-size: 9px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .ch-SMS {
+        background: rgba(34, 211, 165, 0.1);
+        color: var(--green);
+        border: 1px solid rgba(34, 211, 165, 0.2);
+      }
+      .ch-Email {
+        background: rgba(251, 191, 36, 0.1);
+        color: var(--amber);
+        border: 1px solid rgba(251, 191, 36, 0.2);
+      }
+      .ch-Push {
+        background: rgba(192, 132, 252, 0.1);
+        color: var(--accent2);
+        border: 1px solid rgba(192, 132, 252, 0.2);
+      }
+      .cat-badge {
+        font-family: var(--mono);
+        font-size: 9px;
+        padding: 2px 7px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .cat-Sports {
+        background: rgba(34, 211, 165, 0.07);
+        color: rgba(34, 211, 165, 0.7);
+      }
+      .cat-Finance {
+        background: rgba(251, 191, 36, 0.07);
+        color: rgba(251, 191, 36, 0.7);
+      }
+      .cat-Movies {
+        background: rgba(192, 132, 252, 0.07);
+        color: rgba(192, 132, 252, 0.7);
+      }
+      .e-body {
+        font-size: 13px;
+        color: var(--muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 360px;
+      }
+      .e-meta {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--muted);
+        margin-top: 3px;
+        opacity: 0.6;
+      }
+
+      .e-right {
+        text-align: right;
+        flex-shrink: 0;
+      }
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-family: var(--mono);
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+      .status::before {
+        content: "";
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .st-sent {
+        color: var(--green);
+      }
+      .st-sent::before {
+        background: var(--green);
+        box-shadow: 0 0 5px var(--green);
+      }
+      .st-failed {
+        color: var(--red);
+      }
+      .st-failed::before {
+        background: var(--red);
+      }
+      .st-pending {
+        color: var(--amber);
+      }
+      .st-pending::before {
+        background: var(--amber);
+      }
+      .e-time {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--muted);
+        margin-top: 5px;
+      }
+
+      /* ── Empty / loader ── */
+      .empty {
+        padding: 56px 20px;
+        text-align: center;
+      }
+      .empty-icon {
+        width: 44px;
+        height: 44px;
+        border: 1px dashed var(--border);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 14px;
+        font-size: 18px;
+      }
+      .empty-title {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .empty-sub {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 5px;
+        opacity: 0.55;
+      }
+      .loader-dots {
+        display: flex;
+        gap: 5px;
+        justify-content: center;
+        padding: 40px;
+      }
+      .loader-dots span {
+        width: 4px;
+        height: 4px;
+        background: var(--accent);
+        border-radius: 50%;
+        animation: bounce 1.2s ease-in-out infinite;
+      }
+      .loader-dots span:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .loader-dots span:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+      @keyframes bounce {
+        0%,
+        80%,
+        100% {
+          transform: scale(0.5);
+          opacity: 0.4;
+        }
+        40% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      /* ── Toast ── */
+      #toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 999;
+        padding: 12px 18px;
+        border-radius: 9px;
+        font-family: var(--mono);
+        font-size: 12px;
+        font-weight: 700;
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+        pointer-events: none;
+        max-width: 300px;
+      }
+      #toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      #toast.ok {
+        background: rgba(34, 211, 165, 0.12);
+        border: 1px solid rgba(34, 211, 165, 0.35);
+        color: var(--green);
+      }
+      #toast.err {
+        background: rgba(248, 113, 113, 0.12);
+        border: 1px solid rgba(248, 113, 113, 0.35);
+        color: var(--red);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="toast"></div>
+
+    <div class="wrap">
+      <header>
+        <div class="logo">
+          <div class="logo-mark">N/</div>
+          <div class="logo-name">notif<span>.sys</span></div>
+        </div>
+        <div class="header-tag">
+          <div>
+            <span class="live-dot"></span>Event-Driven · Hexagonal Architecture
+          </div>
+          <div style="margin-top: 2px">Kafka · PostgreSQL · NestJS</div>
+        </div>
+      </header>
+
+      <main>
+        <!-- ── Send Form ── -->
+        <aside>
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-label">Send Message</span>
+              <span class="panel-chip">Kafka Producer</span>
+            </div>
+            <div class="form-body">
+              <div class="field">
+                <label>Category</label>
+                <div class="pills">
+                  <button class="pill pill-s" onclick="pickCategory('Sports')">
+                    ⚽ Sports
+                  </button>
+                  <button class="pill pill-f" onclick="pickCategory('Finance')">
+                    📈 Finance
+                  </button>
+                  <button class="pill pill-m" onclick="pickCategory('Movies')">
+                    🎬 Movies
+                  </button>
+                </div>
+                <select id="sel-cat" onchange="pickCategory(this.value)">
+                  <option value="">— Select a category —</option>
+                  <option value="Sports">Sports</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Movies">Movies</option>
+                </select>
+                <div id="err-cat" class="field-err">
+                  Please select a category
+                </div>
+              </div>
+
+              <div class="field">
+                <label>Message</label>
+                <textarea
+                  id="inp-body"
+                  placeholder="Enter notification message…"
+                  maxlength="5000"
+                  oninput="onBody()"
+                ></textarea>
+                <div class="char" id="char-count">0 / 5000</div>
+                <div id="err-body" class="field-err">
+                  Message cannot be empty
+                </div>
+              </div>
+
+              <button class="btn" id="send-btn" onclick="doSend()">
+                ↗ Publish to Kafka
+              </button>
+
+              <div class="users-box">
+                <div class="users-box-title">Subscribers Reference</div>
+                <div id="users-list"></div>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- ── Log Panel ── -->
+        <section class="log-panel">
+          <div
+            class="panel"
+            style="flex: 1; display: flex; flex-direction: column"
+          >
+            <div class="panel-head">
+              <span class="panel-label">Notification Log</span>
+              <div class="log-controls">
+                <div class="spinner" id="spinner"></div>
+                <span class="log-count" id="log-count">— entries</span>
+                <button class="refresh-btn" onclick="loadLogs()">
+                  ↺ Refresh
+                </button>
+              </div>
+            </div>
+            <div class="log-body" id="log-body">
+              <div class="loader-dots">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const USERS = [
+        {
+          name: "Alice Johnson",
+          subs: ["Sports", "Finance"],
+          ch: ["SMS", "Email"],
+        },
+        {
+          name: "Bob Martinez",
+          subs: ["Movies", "Finance"],
+          ch: ["Email", "Push"],
+        },
+        { name: "Carol Williams", subs: ["Sports"], ch: ["SMS"] },
+        {
+          name: "David Chen",
+          subs: ["Sports", "Movies", "Finance"],
+          ch: ["SMS", "Email", "Push"],
+        },
+        { name: "Eva Rodriguez", subs: ["Movies"], ch: ["Push"] },
+        { name: "Frank Thompson", subs: ["Finance"], ch: ["Email"] },
+        { name: "Grace Kim", subs: ["Sports", "Movies"], ch: ["SMS", "Push"] },
+      ];
+
+      document.getElementById("users-list").innerHTML = USERS.map(
+        (u) => `
+  <div class="u-row">
+    <span>${u.name}</span>
+    <div class="u-dots">
+      ${u.subs.includes("Sports") ? '<div class="u-dot d-s" title="Sports"></div>' : ""}
+      ${u.subs.includes("Finance") ? '<div class="u-dot d-f" title="Finance"></div>' : ""}
+      ${u.subs.includes("Movies") ? '<div class="u-dot d-m" title="Movies"></div>' : ""}
+    </div>
+  </div>`,
+      ).join("");
+
+      function pickCategory(val) {
+        document.getElementById("sel-cat").value = val;
+        document
+          .querySelectorAll(".pill")
+          .forEach((p) => p.classList.remove("active"));
+        const cls = { Sports: "pill-s", Finance: "pill-f", Movies: "pill-m" }[
+          val
+        ];
+        if (cls) document.querySelector("." + cls)?.classList.add("active");
+        document.getElementById("err-cat").style.display = "none";
+      }
+
+      function onBody() {
+        const n = document.getElementById("inp-body").value.length;
+        const el = document.getElementById("char-count");
+        el.textContent = `${n} / 5000`;
+        el.className =
+          "char" + (n > 4500 ? (n >= 5000 ? " over" : " warn") : "");
+        if (n > 0) document.getElementById("err-body").style.display = "none";
+      }
+
+      function toast(msg, type) {
+        const el = document.getElementById("toast");
+        el.textContent = msg;
+        el.className = `show ${type}`;
+        setTimeout(() => (el.className = ""), 3500);
+      }
+
+      async function doSend() {
+        const category = document.getElementById("sel-cat").value;
+        const body = document.getElementById("inp-body").value.trim();
+        let ok = true;
+        if (!category) {
+          document.getElementById("err-cat").style.display = "block";
+          ok = false;
+        }
+        if (!body) {
+          document.getElementById("err-body").style.display = "block";
+          ok = false;
+        }
+        if (!ok) return;
+
+        const btn = document.getElementById("send-btn");
+        btn.disabled = true;
+        btn.textContent = "⟳ Publishing…";
+
+        try {
+          const res = await fetch("/api/messages", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ category, body }),
+          });
+          const data = await res.json();
+          if (!res.ok)
+            throw new Error(
+              Array.isArray(data.message)
+                ? data.message.join(", ")
+                : data.message,
+            );
+          toast(`✓ Published · ${data.data.messageId.slice(0, 8)}…`, "ok");
+          document.getElementById("inp-body").value = "";
+          document.getElementById("char-count").textContent = "0 / 5000";
+          setTimeout(loadLogs, 1100);
+        } catch (e) {
+          toast(`✗ ${e.message}`, "err");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "↗ Publish to Kafka";
+        }
+      }
+
+      function chClass(ch) {
+        return ch === "SMS"
+          ? "ch-SMS"
+          : ch === "Email"
+            ? "ch-Email"
+            : "ch-Push";
+      }
+      function catClass(c) {
+        return `cat-${c}`;
+      }
+      function stClass(s) {
+        return `st-${s}`;
+      }
+      function ago(iso) {
+        const d = Math.floor((Date.now() - new Date(iso)) / 1000);
+        if (d < 60) return `${d}s ago`;
+        if (d < 3600) return `${Math.floor(d / 60)}m ago`;
+        if (d < 86400) return `${Math.floor(d / 3600)}h ago`;
+        return new Date(iso).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      function renderLogs(logs) {
+        const el = document.getElementById("log-body");
+        document.getElementById("log-count").textContent =
+          `${logs.length} entries`;
+        if (!logs.length) {
+          el.innerHTML = `<div class="empty">
+      <div class="empty-icon">◎</div>
+      <div class="empty-title">No notifications yet</div>
+      <div class="empty-sub">Send a message above to start</div>
+    </div>`;
+          return;
+        }
+        el.innerHTML = logs
+          .map(
+            (l) => `
+    <div class="entry">
+      <div>
+        <div class="e-row1">
+          <span class="e-user">${l.userName}</span>
+          <span class="ch-badge ${chClass(l.channel)}">${l.channel}</span>
+          <span class="cat-badge ${catClass(l.messageCategory)}">${l.messageCategory}</span>
+        </div>
+        <div class="e-body" title="${l.messageBody}">${l.messageBody}</div>
+        <div class="e-meta">msg/${l.messageId.slice(0, 8)}… · user/${l.userId}</div>
+      </div>
+      <div class="e-right">
+        <div class="status ${stClass(l.status)}">${l.status}</div>
+        <div class="e-time">${ago(l.createdAt)}</div>
+      </div>
+    </div>`,
+          )
+          .join("");
+      }
+
+      async function loadLogs() {
+        const sp = document.getElementById("spinner");
+        sp.style.display = "block";
+        try {
+          const res = await fetch("/api/notifications/logs");
+          const data = await res.json();
+          renderLogs(data.data ?? []);
+        } catch {
+          document.getElementById("log-body").innerHTML = `<div class="empty">
+      <div class="empty-icon">!</div>
+      <div class="empty-title">Connection error</div>
+      <div class="empty-sub">Is the server running?</div>
+    </div>`;
+          document.getElementById("log-count").textContent = "—";
+        } finally {
+          sp.style.display = "none";
+        }
+      }
+
+      loadLogs();
+      setInterval(loadLogs, 5000);
+    </script>
+  </body>
+</html>
