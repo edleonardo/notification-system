@@ -120,9 +120,13 @@ npm run test:cov    # with coverage report
 | Frank Thompson | Finance                 | Email            |
 | Grace Kim      | Sports, Movies          | SMS, Push        |
 
+---
+
 ## 📝 Future Enhancements
 
 - [ ] Implement third-party services for sending notifications.
+
+---
 
 👤 **Eduardo Alves**
 
